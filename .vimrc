@@ -1,14 +1,15 @@
 " Maintainer: Nikos Kanistras
-" last Change: 2020 February 15
+" last Change: 2020 February 16
 
 " === Plug-in Installation ===
 
 " *** Settings for Correct Plug-in Loading *** 
     "Force plugins to load correctly.
-    filetype off
+    filetype on
 
     " For plug-ins to load correctly.
     filetype plugin indent on
+    filetype indent on
 
 " *** Auto Installation ***
     if empty(glob('~/.vim/autoload/plug.vim'))
@@ -29,6 +30,12 @@
     call plug#end()
 
 " *** LaTeX ***
+    " SyncTeX funcionality with zathura.
+    function! SyncTexForward()
+    let execstr = "silent !zathura --synctex-forward ".line(".").":".col(".").":%:p %:p:r.pdf &"
+    exec execstr
+    endfunction
+    au FileType tex nmap <Leader>f :call SyncTexForward()<CR>    au BufNewFile,BufRead *.tikz set filetype=tex
     let g:tex_flavor ='latex'
     let g:vimtex_quickfix_open_on_warning = 0
     let g:vimtex_quickfix_mode = 0
@@ -53,6 +60,9 @@
     " Set vim with no compatibility to Vi.
     set nocompatible
 
+    " Save as sudo
+    command! -nargs=0 Sw w !sudo tee % > /dev/null
+
     " Automatic source of .vimrc file.
     autocmd! bufwritepost .vimrc source %
 
@@ -63,7 +73,10 @@
     syntax enable
 
     " Copy Paste from everywhere
-    set clipboard=unnamed
+    set clipboard=unnamedplus
+
+    " Paste in insert mode with Ctrl+V
+    imap <C-V> <C-R>+
 
     " Set backspace behavior.
     set backspace=indent,eol,start
@@ -75,6 +88,15 @@
 
     " Set line numbers.
     set number
+
+    " Wrap Lines.
+    set wrap
+
+    " Wrap lines by the end of a word.
+    set linebreak
+    
+    " Set Vim to not show @@@ on long lines
+    set display+=lastline
 
     " Highlight cursor.
     " set cursorline
@@ -104,11 +126,12 @@
     set ignorecase
     set smartcase
     set showmatch
-    " map <leader><space> :let @/=''<cr> " clear search
+    " Clear search results.
+    nnoremap <silent> // :noh<CR>
 
     " Make command line height. 
     " The value correspond to number of lines.
-    set ch=1
+    set ch=2
     
     " Hide mouse
     set mousehide
@@ -136,6 +159,10 @@
     let g:netrw_altv=1
     let g:netrw_liststyle=3 
 
+" *** Spliting ***
+    set splitright
+    set splitbelow
+
 " *** Navigation ***
     " Moving around wrapped lines.
     nnoremap j gj
@@ -155,7 +182,17 @@
     nnoremap <C-L> <C-W><C-L>
     nnoremap <C-H> <C-W><C-H>
     
-" *** Folding ***
+    " Tab Navigation 
+    " New tab shortcut.
+    map tt :tabnew 
+    " Next Tab
+    map <M-Right> :tabn<CR>
+    imap <M-Right> <ESC>:tabn<CR>
+    " Previus Tab
+    map <M-Left> :tabp<CR>
+    imap <M-Left> <ESC>:tabp<CR>
+
+    " *** Folding ***
     " Enable folding.
     set foldenable
     
@@ -238,7 +275,7 @@
 	 let statusline.=""
 	 "let statusline.="%4*"
 	 let statusline.="\ %<"
-	 let statusline.="%F"
+	 let statusline.="%f"
 	 let statusline.="%{&modified?'\*':''}"
 	 let statusline.="%{&readonly?'\ \ ':''}"
 	 let statusline.="%="
@@ -262,7 +299,7 @@
 	 " let statusline.="%(%{'help'!=&filetype?'\ \ '.bufnr('%').'\ \ ':'\ '}%)"
 	 " let statusline.="%{fugitive#head()!=''?'\ \ '.fugitive#head().'\ ':'\ '}"
 	 let statusline.="\ %<"
-	 let statusline.="%F"
+	 let statusline.="%f"
 	 let statusline.="%{&modified?'\*':''}"
 	 let statusline.="%{&readonly?'\ \ ':''}"
 	 let statusline.="%="
@@ -282,6 +319,15 @@
     
     " Set status line at active status by default.
     set statusline=%!ActiveStatus()
+augroup status
+  autocmd!
+  autocmd WinEnter * setlocal statusline=%!ActiveStatus()
+  autocmd WinLeave * setlocal statusline=%!InactiveStatus()
+ " autocmd ColorScheme kalisi if(&background=="dark") | hi User1 guibg=#afd700 guifg=#005f00 | endif
+ " autocmd ColorScheme kalisi if(&background=="dark") | hi User2 guibg=#005f00 guifg=#afd700 | endif
+ " autocmd ColorScheme kalisi if(&background=="dark") | hi User3 guibg=#222222 guifg=#005f00 | endif
+ " autocmd ColorScheme kalisi if(&background=="dark") | hi User4 guibg=#222222 guifg=#d0d0d0 | endif
+ augroup END
 
 " *** Status Line Configuration ***
 	"set laststatus=2
@@ -305,3 +351,5 @@
 " === GUI Configuration ===
     set guifont=Source\ Code\ Pro\ 12 " -misc-fixed-medium-r-normal--14-130-75-75-c-70-iso8859-1
     set guioptions-=T  " no toolbar
+    set guioptions-=r  "remove right-hand scroll bar
+    set guioptions-=L  "remove left-hand scroll bar
